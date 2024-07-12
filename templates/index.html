@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Name Mention Tracker</title>
+    <link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='vendor/bootstrap-icons/bootstrap-icons.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    <style>
+        body {
+            background: url('{{ url_for('static', filename='rickroll.gif') }}') no-repeat center center fixed;
+            background-size: cover;
+            color: white;
+            font-family: 'Arial', sans-serif;
+            position: relative;
+        }
+        .container {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 50px;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+        .header {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 3em;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        .btn-primary {
+            background-color: #ff5733;
+            border-color: #ff5733;
+            font-size: 1.2em;
+            width: 100%;
+            margin-top: 20px;
+            transition: background-color 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #c70039;
+            border-color: #c70039;
+        }
+        .result-card {
+            margin-top: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            color: black;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .table {
+            width: 100%;
+            margin-top: 20px;
+        }
+        .table th, .table td {
+            color: black;
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+        .crown {
+            color: gold;
+        }
+        textarea {
+            height: 300px;
+            resize: none;
+            font-size: 1.2em;
+            background: rgba(255, 255, 255, 0.9);
+            color: black;
+            border: 2px solid #ff5733;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #ff5733;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        .king-animation {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .king-animation img {
+            width: 150px;
+            height: auto;
+        }
+        .watermark {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-size: 1em;
+            color: rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Name Mention Tracker</h1>
+        </div>
+        <div class="form-group">
+            <label for="reviews">Paste Reviews:</label>
+            <textarea class="form-control" id="reviews" rows="10" placeholder="Enter reviews here..."></textarea>
+        </div>
+        <button class="btn btn-primary" id="analyze-btn">Analyze Mentions</button>
+        <div class="mt-4" id="result"></div>
+        <div class="king-animation" id="kingAnimation" style="display: none;">
+            <img src="{{ url_for('static', filename='king.gif') }}" alt="King Animation">
+            <div id="kingName"></div>
+        </div>
+    </div>
+    <div class="watermark">Created by AVI</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#analyze-btn').click(function() {
+                var reviews = $('#reviews').val();
+                $.ajax({
+                    url: '/api/reviews',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ reviews: reviews }),
+                    success: function(response) {
+                        var resultDiv = $('#result');
+                        resultDiv.empty();
+                        $('#kingAnimation').hide();
+
+                        if (response.length > 0) {
+                            var maxCount = Math.max.apply(null, response.map(function(item) { return item.count; }));
+                            var winner = response.find(item => item.count === maxCount).receptionist;
+
+                            var resultHtml = '<div class="card result-card"><div class="card-body"><h4 class="card-title">Results:</h4>';
+                            resultHtml += '<table class="table"><thead><tr><th>Receptionist</th><th>Mentions</th></tr></thead><tbody>';
+                            response.forEach(function(item) {
+                                resultHtml += '<tr><td>' + item.receptionist;
+                                if (item.receptionist === winner) {
+                                    resultHtml += ' <span class="crown">&#x1F451;</span>';
+                                    $('#kingName').text(item.receptionist);
+                                    $('#kingAnimation').show();
+                                }
+                                resultHtml += '</td><td>' + item.count + '</td></tr>';
+                            });
+                            resultHtml += '</tbody></table></div></div>';
+                            resultDiv.html(resultHtml);
+                        } else {
+                            resultDiv.html('<div class="card result-card"><div class="card-body"><h4 class="card-title">No mentions found.</h4></div></div>');
+                        }
+                    },
+                    error: function(error) {
+                        console.error('Error:', error);  // Log any error
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

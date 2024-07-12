@@ -1,0 +1,12 @@
+Name_Mention_Tracker/
+├── app.py
+├── templates/
+│   └── index.html
+├── static/
+│   └── style.css
+├── data/
+│   └── receptionists.txt
+├── venv/
+├── requirements.txt
+├── Procfile
+└── runtime.txt (optional)
