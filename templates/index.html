@@ -127,7 +127,7 @@
             $('#analyze-btn').click(function() {
                 var reviews = $('#reviews').val();
                 $.ajax({
-                    url: '/api/reviews',
+                    url: 'https://name-mention-tracker.onrender.com/api/reviews',
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify({ reviews: reviews }),
@@ -158,7 +158,7 @@
                         }
                     },
                     error: function(error) {
-                        console.error('Error:', error);  // Log any error
+                        console.error('Error:', error);
                     }
                 });
             });
